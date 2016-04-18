@@ -119,7 +119,7 @@ void sr_handlepacket(struct sr_instance* sr,
     printf("*** -> Receiving packet type is: %x", ntohs(ehdr->ether_type));
     printf("*** -> Receiving interface is: %s",interface);
     printf("*** -> Interface ethernet addr is: ");
-    (struct sr_if*) rec_if = sr_get_interface(sr, interface);
+    struct sr_if* rec_if = sr_get_interface(sr, interface);
     int pos2 = 0;
     uint8_t curr1;
   for (; pos2 < ETHER_ADDR_LEN; pos2++) {
