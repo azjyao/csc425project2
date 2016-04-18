@@ -109,10 +109,10 @@ void sr_handlepacket(struct sr_instance* sr,
     struct sr_arphdr reply_arphdr;
     struct sr_if* sr_if = sr_get_interface(sr, interface);
 
-    reply_arphdr.ar_hrd = htons(arp_header->ar_hrd);
-    reply_arphdr.ar_pro = htons(arp_header->ar_pro);
+    reply_arphdr.ar_hrd = arp_header->ar_hrd;
+    reply_arphdr.ar_pro = arp_header->ar_pro;
     reply_arphdr.ar_hln = ETHER_ADDR_LEN;
-    reply_arphdr.ar_pln = htons(arp_header->ar_pln);
+    reply_arphdr.ar_pln = arp_header->ar_pln;
     reply_arphdr.ar_op = ARP_REPLY;
     memcpy(reply_arphdr.ar_sha, sr_if->addr, ETHER_ADDR_LEN);
     reply_arphdr.ar_sip = sr_if->ip;
