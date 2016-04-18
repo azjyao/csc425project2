@@ -121,7 +121,7 @@ void sr_handlepacket(struct sr_instance* sr,
 
     /* Build the ethernet header for the reply message */
     struct sr_ethernet_hdr reply_ethhdr;
-    reply_ethhdr.ether_type = ARP_REPLY;
+    reply_ethhdr.ether_type = ETHERTYPE_ARP;
     memcpy(reply_ethhdr.ether_dhost, arp_header->ar_sha, ETHER_ADDR_LEN);
     memcpy(reply_ethhdr.ether_shost, sr_if->addr, ETHER_ADDR_LEN);
 
