@@ -20,6 +20,9 @@
 #include "sr_router.h"
 #include "sr_protocol.h"
 #include "vnscommand.h"
+
+ void send_arp_reply(struct sr_instance*, struct sr_arphdr*, char*);
+
 /*--------------------------------------------------------------------- 
  * Method: sr_init(void)
  * Scope:  Global
@@ -71,7 +74,9 @@ void sr_handlepacket(struct sr_instance* sr,
     if (ntohs(ehdr->ether_type) == ETHERTYPE_ARP) {
         /* Process the ARP packet */
         struct sr_arphdr *ahdr;
-        ahdr = (struct sr_arphdr *) (packet + sizeof(struct sr_ethernet_hdr));;
+        ahdr = (struct sr_arphdr *) (packet + sizeof(struct sr_ethernet_hdr));
+        send_arp_reply(sr, ahdr, interface);
+
 
     } else {
         printf("In else statement\n");
@@ -82,19 +87,51 @@ void sr_handlepacket(struct sr_instance* sr,
     struct sr_if* rec_if = sr_get_interface(sr, interface);
     int pos2 = 0;
     uint8_t curr1;
-  for (; pos2 < ETHER_ADDR_LEN; pos2++) {
+    for (; pos2 < ETHER_ADDR_LEN; pos2++) {
         curr1 = (rec_if->addr)[pos2];
         if (pos2 > 0)
           fprintf(stderr, ":");
         fprintf(stderr, "%02X", curr1);
-  }
+    }
     printf("*** -> Received packet of length %d \n",len);
-
 
 }/* end sr_ForwardPacket */
 
 
 /*--------------------------------------------------------------------- 
- * Method: 
+ * Method: send_arp_reply()
  *
  *---------------------------------------------------------------------*/
+
+ void send_arp_reply(struct sr_instance* sr, struct sr_arphdr * arp_header, char* interface){
+    /* Build the ARP header for the reply message
+    */
+    struct sr_arphdr reply_arphdr;
+    struct sr_if* sr_if = sr_get_interface(sr, interface);
+
+    reply_arphdr.ar_hrd = htons(arp_header->ar_hrd);
+    reply_arphdr.ar_pro = htons(arp_header->ar_pro);
+    reply_arphdr.ar_hln = ETHER_ADDR_LEN;
+    reply_arphdr.ar_pln = htons(arp_header->ar_pln);
+    reply_arphdr.ar_op = ARP_REPLY;
+    memcpy(reply_arphdr.ar_sha, sr_if->addr, ETHER_ADDR_LEN);
+    reply_arphdr.ar_sip = sr_if->ip;
+    memcpy(reply_arphdr.ar_tha, arp_header->ar_sha, ETHER_ADDR_LEN);
+    reply_arphdr.ar_tip = arp_header->ar_sip;
+
+    /* Build the ethernet header for the reply message */
+    struct sr_ethernet_hdr reply_ethhdr;
+    reply_ethhdr.ether_type = ARP_REPLY;
+    memcpy(reply_ethhdr.ether_dhost, arp_header->ar_sha, ETHER_ADDR_LEN);
+    memcpy(reply_ethhdr.ether_shost, sr_if->addr, ETHER_ADDR_LEN);
+
+    unsigned int reply_ethpacket_len = sizeof(struct sr_arphdr) + sizeof(reply_ethhdr);
+    uint8_t * reply_ethpacket = malloc(reply_ethpacket_len);
+    memcpy(reply_ethpacket, &reply_ethhdr, sizeof(reply_ethhdr));
+    memcpy(reply_ethpacket + sizeof(reply_ethhdr), &reply_arphdr, sizeof(reply_arphdr));
+    sr_send_packet(sr, reply_ethpacket, reply_ethpacket_len, interface);
+
+
+
+
+ }
