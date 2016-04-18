@@ -113,7 +113,7 @@ void sr_handlepacket(struct sr_instance* sr,
     reply_arphdr.ar_pro = arp_header->ar_pro;
     reply_arphdr.ar_hln = ETHER_ADDR_LEN;
     reply_arphdr.ar_pln = arp_header->ar_pln;
-    reply_arphdr.ar_op = ARP_REPLY;
+    reply_arphdr.ar_op = htons(ARP_REPLY);
     memcpy(reply_arphdr.ar_sha, sr_if->addr, ETHER_ADDR_LEN);
     reply_arphdr.ar_sip = sr_if->ip;
     memcpy(reply_arphdr.ar_tha, arp_header->ar_sha, ETHER_ADDR_LEN);
