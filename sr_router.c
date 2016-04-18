@@ -72,47 +72,7 @@ void sr_handlepacket(struct sr_instance* sr,
         /* Process the ARP packet */
         struct sr_arphdr *ahdr;
         ahdr = (struct sr_arphdr *) (packet + sizeof(struct sr_ethernet_hdr));;
-        printf("Hardware addr format: %d\n", ntohs(ahdr->ar_hrd));
-	printf("Protocol addr format: %d\n", ntohs(ahdr->ar_pro));
-	printf("Hardware addr length: %d\n", ntohs(ahdr->ar_hln));
-	printf("Protocol addr length: %d\n", ntohs(ahdr->ar_pln));
-       	printf("ARP_opcode: %d\n", ntohs(ahdr->ar_op));
-	int pos = 0;
-  	uint8_t cur;
-  	for (; pos < ETHER_ADDR_LEN; pos++) {
-    		cur = (ahdr->ar_sha)[pos];
-    		if (pos > 0)
-      			fprintf(stderr, ":");
-    		fprintf(stderr, "%02X", cur);
-  	}
-  	fprintf(stderr, "\n");
-	uint32_t ip = ntohl(ahdr->ar_sip);
-	uint32_t curOctet = ip >> 24;
-  	fprintf(stderr, "%d.", curOctet);
-  	curOctet = (ip << 8) >> 24;
-  	fprintf(stderr, "%d.", curOctet);
-  	curOctet = (ip << 16) >> 24;
-  	fprintf(stderr, "%d.", curOctet);
-  	curOctet = (ip << 24) >> 24;
-  	fprintf(stderr, "%d\n", curOctet);
-  	int pos1 = 0;
-  	uint8_t curr;
-	for (; pos1 < ETHER_ADDR_LEN; pos1++) {
-    		curr = (ahdr->ar_tha)[pos1];
-    		if (pos1 > 0)
- 	     		fprintf(stderr, ":");
-	     	fprintf(stderr, "%02X", curr);
-	}
-	fprintf(stderr, "\n");
-  ip = ntohl(ahdr->ar_tip);
-  uint32_t curOctet1 = ip >> 24;
-  fprintf(stderr, "%d.", curOctet1);
-  curOctet1 = (ip << 8) >> 24;
-  fprintf(stderr, "%d.", curOctet1);
-  curOctet1 = (ip << 16) >> 24;
-  fprintf(stderr, "%d.", curOctet1);
-  curOctet1 = (ip << 24) >> 24;
-  fprintf(stderr, "%d\n", curOctet1);
+
     } else {
         printf("In else statement\n");
     }
@@ -125,8 +85,8 @@ void sr_handlepacket(struct sr_instance* sr,
   for (; pos2 < ETHER_ADDR_LEN; pos2++) {
         curr1 = (rec_if->addr)[pos2];
         if (pos2 > 0)
-          printf(stderr, ":");
-        printf(stderr, "%02X", curr1);
+          fprintf(stderr, ":");
+        fprintf(stderr, "%02X", curr1);
   }
     printf("*** -> Received packet of length %d \n",len);
 
