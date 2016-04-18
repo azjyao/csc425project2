@@ -125,8 +125,8 @@ void sr_handlepacket(struct sr_instance* sr,
   for (; pos2 < ETHER_ADDR_LEN; pos2++) {
         curr1 = (rec_if->addr)[pos2];
         if (pos2 > 0)
-          fprintf(stderr, ":");
-        fprintf(stderr, "%02X", curr1);
+          printf(stderr, ":");
+        printf(stderr, "%02X", curr1);
   }
     printf("*** -> Received packet of length %d \n",len);
 
