@@ -118,12 +118,23 @@ void sr_handlepacket(struct sr_instance* sr,
     }
     printf("*** -> Receiving packet type is: %x", ntohs(ehdr->ether_type));
     printf("*** -> Receiving interface is: %s",interface);
+    printf("*** -> Interface ethernet addr is: ");
+    rec_if = sr_get_interface(sr, interface);
+    pos1 = 0;
+    uint8_t curr1;
+  for (; pos1 < ETHER_ADDR_LEN; pos1++) {
+        curr1 = (rec_if->addr)[pos1];
+        if (pos1 > 0)
+          fprintf(stderr, ":");
+        fprintf(stderr, "%02X", curr1);
+  }
     printf("*** -> Received packet of length %d \n",len);
+
 
 }/* end sr_ForwardPacket */
 
 
 /*--------------------------------------------------------------------- 
- * Method:
+ * Method: 
  *
  *---------------------------------------------------------------------*/
