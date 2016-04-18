@@ -120,11 +120,11 @@ void sr_handlepacket(struct sr_instance* sr,
     printf("*** -> Receiving interface is: %s",interface);
     printf("*** -> Interface ethernet addr is: ");
     sr_if* rec_if = sr_get_interface(sr, interface);
-    pos1 = 0;
+    int pos2 = 0;
     uint8_t curr1;
-  for (; pos1 < ETHER_ADDR_LEN; pos1++) {
-        curr1 = (rec_if->addr)[pos1];
-        if (pos1 > 0)
+  for (; pos2 < ETHER_ADDR_LEN; pos2++) {
+        curr1 = (rec_if->addr)[pos2];
+        if (pos2 > 0)
           fprintf(stderr, ":");
         fprintf(stderr, "%02X", curr1);
   }
