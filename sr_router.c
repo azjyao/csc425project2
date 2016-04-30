@@ -143,6 +143,7 @@ void sr_handlepacket(struct sr_instance* sr,
     memcpy(reply_ethpacket, &reply_ethhdr, sizeof(reply_ethhdr));
     memcpy(reply_ethpacket + sizeof(reply_ethhdr), &reply_arphdr, sizeof(reply_arphdr));
     sr_send_packet(sr, reply_ethpacket, reply_ethpacket_len, interface);
+    printf("After sending the reply\n");
 
  }
 
