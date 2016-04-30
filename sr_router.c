@@ -37,7 +37,7 @@ void sr_init(struct sr_instance* sr)
     assert(sr);
 
     /* Add initialization code here! */
-    arp_cache_init(&(sr->arp_cache));
+    //arp_cache_init(&(sr->arp_cache));
 
 
 } /* -- sr_init -- */
