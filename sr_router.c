@@ -37,6 +37,8 @@ void sr_init(struct sr_instance* sr)
     assert(sr);
 
     /* Add initialization code here! */
+    arp_cache_init(&(sr->arp_cache));
+
 
 } /* -- sr_init -- */
 
@@ -78,9 +80,16 @@ void sr_handlepacket(struct sr_instance* sr,
         send_arp_reply(sr, ahdr, interface);
 
 
+    } else if(ntohs(ehdr->ether_type) == ETHERTYPE_IP) {
+        /* Process the IP packet */
+        struct ip *ip_hdr;
+        ip_hdr = (struct ip *) (packet + sizeof(struct sr_ethernet_hdr));
+        printf("We got an IP packet\n");
+        process_ip_packet(sr, ip_hdr);
     } else {
         printf("In else statement\n");
     }
+
     printf("*** -> Receiving packet type is: %x", ntohs(ehdr->ether_type));
     printf("*** -> Receiving interface is: %s",interface);
     printf("*** -> Interface ethernet addr is: ");
@@ -108,7 +117,9 @@ void sr_handlepacket(struct sr_instance* sr,
     */
     struct sr_arphdr reply_arphdr;
     struct sr_if* sr_if = sr_get_interface(sr, interface);
-
+    if(sr_if->ip != arp_header->tip){
+        return;
+    }
     reply_arphdr.ar_hrd = htons(0x0001);
     reply_arphdr.ar_pro = htons(0x0800);
     reply_arphdr.ar_hln = ETHER_ADDR_LEN;
@@ -131,7 +142,8 @@ void sr_handlepacket(struct sr_instance* sr,
     memcpy(reply_ethpacket + sizeof(reply_ethhdr), &reply_arphdr, sizeof(reply_arphdr));
     sr_send_packet(sr, reply_ethpacket, reply_ethpacket_len, interface);
 
+ }
 
-
+ void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr){
 
  }
