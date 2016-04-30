@@ -121,6 +121,7 @@ void sr_handlepacket(struct sr_instance* sr,
         printf("In the return nothing statement of send_arp_reply\n");
         return;
     }
+    printf("Outside the return statement\n");
     reply_arphdr.ar_hrd = htons(0x0001);
     reply_arphdr.ar_pro = htons(0x0800);
     reply_arphdr.ar_hln = ETHER_ADDR_LEN;
