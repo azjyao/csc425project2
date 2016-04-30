@@ -1,20 +1,20 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/time.h>
-#include <sr_protocol.h>
+#include "sr_protocol.h"
 
-#define MAX_SiZE 32
+#define MAX_SIZE 32
 #define ENTRY_LIFETIME 15
 
 struct arp_cache_entry {
 	unsigned char	hardware_addr[ETHER_ADDR_LEN];
 	uint32_t		ip_addr;
 	int				init_time;
-}
+};
 
 struct sr_arp_cache {
 	struct arp_cache_entry cache[MAX_SIZE];
-}
+};
 
 void arp_cache_init(struct sr_arp_cache* arp_cache){
 	memset(arp_cache->cache, 0, sizeof(arp_cache->cache));
@@ -44,9 +44,9 @@ int arp_cache_insert(struct sr_arp_cache* arp_cache, uint32_t ip, unsigned char*
 	int i;
 	for(i = 0; i < MAX_SIZE; i++){
 		if(arp_cache->cache[i].ip_addr == 0){
-			cache[i].ip_addr = ip;
-			memcpy(cache[i].hardware_addr, hardware, sizeof(unsigned char)*ETHER_ADDR_LEN);
-			cache[i].init_time = curr_sec;
+			arp_cache->cache[i].ip_addr = ip;
+			memcpy(arp_cache->cache[i].hardware_addr, hardware, sizeof(unsigned char)*ETHER_ADDR_LEN);
+			arp_cache->cache[i].init_time = curr_sec;
 			not_full = 1;
 			break;
 		}
@@ -59,13 +59,13 @@ int arp_cache_lookup(struct sr_arp_cache* arp_cache, uint32_t ip, unsigned char*
 	int i;
 	struct timeval current_time;
 	memset(&current_time, 0, sizeof(current_time));
-	gettimeofday(&current_time, NULl);
+	gettimeofday(&current_time, NULL);
 	int curr_sec = current_time.tv_sec;
 	for(i = 0; i < MAX_SIZE; i++){
 		if(arp_cache->cache[i].ip_addr == ip){
-			memcpy(hardware, cache[i].hardware_addr, sizeof(unsigned char)*ETHER_ADDR_LEN);
+			memcpy(hardware, arp_cache->cache[i].hardware_addr, sizeof(unsigned char)*ETHER_ADDR_LEN);
 			found = 1;
-			cache[i].init_time = curr_sec;
+			arp_cache->cache[i].init_time = curr_sec;
 			break;
 		}
 	}

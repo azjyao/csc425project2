@@ -22,7 +22,7 @@
 #include "vnscommand.h"
 
  void send_arp_reply(struct sr_instance*, struct sr_arphdr*, char*);
-
+ void process_ip_packet(struct sr_instance*, struct ip*);
 /*--------------------------------------------------------------------- 
  * Method: sr_init(void)
  * Scope:  Global
@@ -117,7 +117,7 @@ void sr_handlepacket(struct sr_instance* sr,
     */
     struct sr_arphdr reply_arphdr;
     struct sr_if* sr_if = sr_get_interface(sr, interface);
-    if(sr_if->ip != arp_header->tip){
+    if(sr_if->ip != arp_header->ar_tip){
         return;
     }
     reply_arphdr.ar_hrd = htons(0x0001);
@@ -145,5 +145,5 @@ void sr_handlepacket(struct sr_instance* sr,
  }
 
  void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr){
-
+    return;
  }
