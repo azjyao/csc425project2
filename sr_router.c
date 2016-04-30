@@ -37,7 +37,7 @@ void sr_init(struct sr_instance* sr)
     assert(sr);
 
     /* Add initialization code here! */
-    //arp_cache_init(&(sr->arp_cache));
+    arp_cache_init(&(sr->arp_cache));
 
 
 } /* -- sr_init -- */
@@ -118,6 +118,7 @@ void sr_handlepacket(struct sr_instance* sr,
     struct sr_arphdr reply_arphdr;
     struct sr_if* sr_if = sr_get_interface(sr, interface);
     if(sr_if->ip != arp_header->ar_tip){
+        printf("In the return nothing statement of send_arp_reply\n");
         return;
     }
     reply_arphdr.ar_hrd = htons(0x0001);
