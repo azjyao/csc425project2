@@ -22,7 +22,7 @@
 #include "vnscommand.h"
 
  void send_arp_reply(struct sr_instance*, struct sr_arphdr*, char*);
- void process_ip_packet(struct sr_instance*, struct ip*);
+ void process_ip_packet(struct sr_instance*, struct ip*, char*);
 /*--------------------------------------------------------------------- 
  * Method: sr_init(void)
  * Scope:  Global
@@ -85,7 +85,7 @@ void sr_handlepacket(struct sr_instance* sr,
         struct ip *ip_hdr;
         ip_hdr = (struct ip *) (packet + sizeof(struct sr_ethernet_hdr));
         printf("We got an IP packet\n");
-        process_ip_packet(sr, ip_hdr);
+        process_ip_packet(sr, ip_hdr, interface);
     } else {
         printf("In else statement\n");
     }
@@ -145,9 +145,14 @@ void sr_handlepacket(struct sr_instance* sr,
 
  }
 
- void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr){
+ void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interface){
     uint32_t dst_addr = (ip_hdr->ip_dst).s_addr;
-    printf("*** -> Destination Address is: %d", dst_addr);
+    printf("*** -> Destination Address is: %d\n", dst_addr);
+    struct sr_if* sr_if = sr_get_interface(sr, interface);
+    printf("*** -> (in process_ip_packet) Interface address: %d", sr_if->ip);
+    if(sr_if->ip == dst_addr){
+        printf("Destination address is ourselves, drop the packet\n");
+    }
 
 
     return;
