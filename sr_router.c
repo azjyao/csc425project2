@@ -13,7 +13,7 @@
 
 #include <stdio.h>
 #include <assert.h>
-
+#include <netinet/in.h>
 
 #include "sr_if.h"
 #include "sr_rt.h"
@@ -118,10 +118,9 @@ void sr_handlepacket(struct sr_instance* sr,
     struct sr_arphdr reply_arphdr;
     struct sr_if* sr_if = sr_get_interface(sr, interface);
     if(sr_if->ip != arp_header->ar_tip){
-        printf("In the return nothing statement of send_arp_reply\n");
         return;
     }
-    printf("Outside the return statement\n");
+    
     reply_arphdr.ar_hrd = htons(0x0001);
     reply_arphdr.ar_pro = htons(0x0800);
     reply_arphdr.ar_hln = ETHER_ADDR_LEN;
@@ -143,10 +142,13 @@ void sr_handlepacket(struct sr_instance* sr,
     memcpy(reply_ethpacket, &reply_ethhdr, sizeof(reply_ethhdr));
     memcpy(reply_ethpacket + sizeof(reply_ethhdr), &reply_arphdr, sizeof(reply_arphdr));
     sr_send_packet(sr, reply_ethpacket, reply_ethpacket_len, interface);
-    printf("After sending the reply\n");
 
  }
 
  void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr){
+    uint32_t dst_addr = (ip_hdr->ip_dst).s_addr;
+    printf("*** -> Destination Address is: %d", dst_addr);
+
+
     return;
  }
