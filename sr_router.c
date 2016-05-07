@@ -159,7 +159,9 @@ void sr_handlepacket(struct sr_instance* sr,
     printf("*** -> New TTL of packet: %d", ip_hdr->ip_ttl);
     if(ip_hdr->ip_ttl == 0){
         printf("TTL is 0, drop the packet\n");
+        return;
     }
+    printf("*** -> Old Checksum of Packet: %d", ip_hdr->ip_sum);
 
 
     return;
