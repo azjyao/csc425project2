@@ -155,7 +155,7 @@ void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interfa
         printf("Destination address is ourselves, drop the packet\n");
         return;
     }
-    printf("*** -> Calculated checksum: %d", cksum(ip_hdr, sizeof(struct ip)));
+    printf("*** -> Calculated checksum: %d", cksum(ip_hdr, (ip_hdr->ip_hl)*4));
     printf("*** -> Old TTL of packet: %d", ip_hdr->ip_ttl);
     ip_hdr->ip_ttl--;
     printf("*** -> New TTL of packet: %d", ip_hdr->ip_ttl);
