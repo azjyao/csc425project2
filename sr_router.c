@@ -22,7 +22,7 @@
 #include "vnscommand.h"
 
  void send_arp_reply(struct sr_instance*, struct sr_arphdr*, char*);
- void process_ip_packet(struct sr_instance*, struct ip*, char*);
+ void process_ip_packet(struct sr_instance*, struct ip*, char*, int);
  u_short cksum(u_short*, int);
 /*--------------------------------------------------------------------- 
  * Method: sr_init(void)
@@ -86,7 +86,7 @@
             struct ip *ip_hdr;
             ip_hdr = (struct ip *) (packet + sizeof(struct sr_ethernet_hdr));
             printf("We got an IP packet\n");
-            process_ip_packet(sr, ip_hdr, interface);
+            process_ip_packet(sr, ip_hdr, interface, len);
         } else {
             printf("In else statement\n");
         }
@@ -146,7 +146,7 @@
 
 }
 
-void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interface){
+void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interface, int len){
     uint32_t dst_addr = (ip_hdr->ip_dst).s_addr;
     printf("*** -> Destination Address is: %d\n", dst_addr);
     struct sr_if* sr_if = sr_get_interface(sr, interface);
@@ -155,7 +155,7 @@ void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interfa
         printf("Destination address is ourselves, drop the packet\n");
         return;
     }
-    printf("*** -> Calculated checksum: %d", (uint16_t) cksum(ip_hdr, (ip_hdr->ip_hl)*4));
+    printf("*** -> Calculated checksum: %d", (uint16_t) cksum(ip_hdr, len);
     printf("*** -> Old TTL of packet: %d", ip_hdr->ip_ttl);
     ip_hdr->ip_ttl--;
     printf("*** -> New TTL of packet: %d", ip_hdr->ip_ttl);
