@@ -23,6 +23,7 @@
 
  void send_arp_reply(struct sr_instance*, struct sr_arphdr*, char*);
  void process_ip_packet(struct sr_instance*, struct ip*, char*);
+ u_short cksum(u_short*, int);
 /*--------------------------------------------------------------------- 
  * Method: sr_init(void)
  * Scope:  Global
