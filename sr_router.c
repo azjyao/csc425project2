@@ -162,7 +162,7 @@ void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interfa
         return;
     }
     printf("*** -> Old Checksum of Packet: %d", ip_hdr->ip_sum);
-    ip_hdr->ip_sum = cksum(ip_hdr, sizeof(struct ip));
+    ip_hdr->ip_sum = (uint16_t) cksum((u_short) ip_hdr, sizeof(struct ip));
     printf("*** -> New Checksum of Packet: %d", ip_hdr->ip_sum);
     // printf("*** -> Checksum calculated: %d", )
 
