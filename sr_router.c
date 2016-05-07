@@ -152,8 +152,14 @@ void sr_handlepacket(struct sr_instance* sr,
     printf("*** -> (in process_ip_packet) Interface address: %d", sr_if->ip);
     if(sr_if->ip == dst_addr){
         printf("Destination address is ourselves, drop the packet\n");
+        return;
     }
-
-
+    ip_hdr->ip_ttl--;
+    printf("*** -> New TTL of packet: %d", ip_hdr->ip_ttl);
+    if(ip_hdr->ip_ttl == 0){
+        printf("TTL is 0, drop the packet\n");
+    }
+    
+    
     return;
  }
