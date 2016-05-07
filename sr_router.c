@@ -171,7 +171,7 @@ void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interfa
 u_short cksum(u_short *buf, int count)
 {
     register u_long sum = 0;
-    while (count- -)
+    while (count--)
     {
         sum += *buf++;
         if (sum & 0xFFFF0000)
