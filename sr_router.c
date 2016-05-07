@@ -154,12 +154,13 @@ void sr_handlepacket(struct sr_instance* sr,
         printf("Destination address is ourselves, drop the packet\n");
         return;
     }
+    printf("*** -> Old TTL of packet: %d", ip_hdr->ip_ttl);
     ip_hdr->ip_ttl--;
     printf("*** -> New TTL of packet: %d", ip_hdr->ip_ttl);
     if(ip_hdr->ip_ttl == 0){
         printf("TTL is 0, drop the packet\n");
     }
-    
-    
+
+
     return;
  }
