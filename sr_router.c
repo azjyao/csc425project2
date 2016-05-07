@@ -151,14 +151,23 @@ void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interfa
     printf("*** -> Destination Address is: %d\n", dst_addr);
     struct sr_if* sr_if = sr_get_interface(sr, interface);
     printf("*** -> (in process_ip_packet) Interface address: %d", sr_if->ip);
+
+    /* 
+    Check if destination is us
+    */
     if(sr_if->ip == dst_addr){
         printf("Destination address is ourselves, drop the packet\n");
         return;
     }
+
+    /*
+    TTL and Checksum
+    */
+    int iphdr_len_cksum = sizeof(struct ip)/2;
     printf("*** -> Received checksum: %d", ip_hdr->ip_sum);
     ip_hdr->ip_sum = 0;
-    printf("*** -> Calculated checksum of Packet: %d", cksum(ip_hdr, (ip_hdr->ip_hl)*5));
-    
+    printf("*** -> Calculated checksum of Packet: %d", cksum(ip_hdr, iphdr_len_cksum));
+
     printf("*** -> Old TTL of packet: %d", ip_hdr->ip_ttl);
     ip_hdr->ip_ttl--;
     printf("*** -> New TTL of packet: %d", ip_hdr->ip_ttl);
@@ -166,9 +175,8 @@ void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interfa
         printf("TTL is 0, drop the packet\n");
         return;
     }
-    
 
-    ip_hdr->ip_sum = (uint16_t) cksum((u_short *) ip_hdr, sizeof(struct ip));
+    ip_hdr->ip_sum = (uint16_t) cksum(ip_hdr, iphdr_len_cksum);
     printf("*** -> New Checksum of Packet: %d", ip_hdr->ip_sum);
     // printf("*** -> Checksum calculated: %d", )
 
