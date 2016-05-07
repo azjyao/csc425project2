@@ -31,8 +31,8 @@
  * 
  *---------------------------------------------------------------------*/
 
-void sr_init(struct sr_instance* sr) 
-{
+ void sr_init(struct sr_instance* sr) 
+ {
     /* REQUIRES */
     assert(sr);
 
@@ -60,49 +60,49 @@ void sr_init(struct sr_instance* sr)
  *
  *---------------------------------------------------------------------*/
 
-void sr_handlepacket(struct sr_instance* sr, 
+ void sr_handlepacket(struct sr_instance* sr, 
         uint8_t * packet/* lent */,
-        unsigned int len,
+    unsigned int len,
         char* interface/* lent */)
-{
+    {
     /* REQUIRES */
-    assert(sr);
-    assert(packet);
-    assert(interface);
+        assert(sr);
+        assert(packet);
+        assert(interface);
 
-    struct sr_ethernet_hdr *ehdr;
-  
-    ehdr = (struct sr_ethernet_hdr *)packet;
-    if (ntohs(ehdr->ether_type) == ETHERTYPE_ARP) {
+        struct sr_ethernet_hdr *ehdr;
+
+        ehdr = (struct sr_ethernet_hdr *)packet;
+        if (ntohs(ehdr->ether_type) == ETHERTYPE_ARP) {
         /* Process the ARP packet */
-        struct sr_arphdr *ahdr;
-        ahdr = (struct sr_arphdr *) (packet + sizeof(struct sr_ethernet_hdr));
-        send_arp_reply(sr, ahdr, interface);
+            struct sr_arphdr *ahdr;
+            ahdr = (struct sr_arphdr *) (packet + sizeof(struct sr_ethernet_hdr));
+            send_arp_reply(sr, ahdr, interface);
 
 
-    } else if(ntohs(ehdr->ether_type) == ETHERTYPE_IP) {
+        } else if(ntohs(ehdr->ether_type) == ETHERTYPE_IP) {
         /* Process the IP packet */
-        struct ip *ip_hdr;
-        ip_hdr = (struct ip *) (packet + sizeof(struct sr_ethernet_hdr));
-        printf("We got an IP packet\n");
-        process_ip_packet(sr, ip_hdr, interface);
-    } else {
-        printf("In else statement\n");
-    }
+            struct ip *ip_hdr;
+            ip_hdr = (struct ip *) (packet + sizeof(struct sr_ethernet_hdr));
+            printf("We got an IP packet\n");
+            process_ip_packet(sr, ip_hdr, interface);
+        } else {
+            printf("In else statement\n");
+        }
 
-    printf("*** -> Receiving packet type is: %x", ntohs(ehdr->ether_type));
-    printf("*** -> Receiving interface is: %s",interface);
-    printf("*** -> Interface ethernet addr is: ");
-    struct sr_if* rec_if = sr_get_interface(sr, interface);
-    int pos2 = 0;
-    uint8_t curr1;
-    for (; pos2 < ETHER_ADDR_LEN; pos2++) {
-        curr1 = (rec_if->addr)[pos2];
-        if (pos2 > 0)
-          fprintf(stderr, ":");
-        fprintf(stderr, "%02X", curr1);
-    }
-    printf("*** -> Received packet of length %d \n",len);
+        printf("*** -> Receiving packet type is: %x", ntohs(ehdr->ether_type));
+        printf("*** -> Receiving interface is: %s",interface);
+        printf("*** -> Interface ethernet addr is: ");
+        struct sr_if* rec_if = sr_get_interface(sr, interface);
+        int pos2 = 0;
+        uint8_t curr1;
+        for (; pos2 < ETHER_ADDR_LEN; pos2++) {
+            curr1 = (rec_if->addr)[pos2];
+            if (pos2 > 0)
+              fprintf(stderr, ":");
+          fprintf(stderr, "%02X", curr1);
+      }
+      printf("*** -> Received packet of length %d \n",len);
 
 }/* end sr_ForwardPacket */
 
@@ -143,9 +143,9 @@ void sr_handlepacket(struct sr_instance* sr,
     memcpy(reply_ethpacket + sizeof(reply_ethhdr), &reply_arphdr, sizeof(reply_arphdr));
     sr_send_packet(sr, reply_ethpacket, reply_ethpacket_len, interface);
 
- }
+}
 
- void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interface){
+void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interface){
     uint32_t dst_addr = (ip_hdr->ip_dst).s_addr;
     printf("*** -> Destination Address is: %d\n", dst_addr);
     struct sr_if* sr_if = sr_get_interface(sr, interface);
@@ -162,7 +162,25 @@ void sr_handlepacket(struct sr_instance* sr,
         return;
     }
     printf("*** -> Old Checksum of Packet: %d", ip_hdr->ip_sum);
-
+    printf("*** -> size of ip_hdr: %d", sizeof(struct ip));
+    // printf("*** -> Checksum calculated: %d", )
 
     return;
- }
+}
+
+u_short cksum(u_short *buf, int count)
+{
+    register u_long sum = 0;
+    while (count- -)
+    {
+        sum += *buf++;
+        if (sum & 0xFFFF0000)
+        {
+/* carry occurred,
+so wrap around */
+            sum &= 0xFFFF;
+            sum++;
+        }
+    }
+    return ~(sum & 0xFFFF);
+}
