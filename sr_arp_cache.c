@@ -1,20 +1,10 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/time.h>
-#include "sr_protocol.h"
+/*
 
-#define MAX_SIZE 32
-#define ENTRY_LIFETIME 15
+Implementing an arp_cache
 
-struct arp_cache_entry {
-	unsigned char	hardware_addr[ETHER_ADDR_LEN];
-	uint32_t		ip_addr;
-	int				init_time;
-};
+*/
 
-struct sr_arp_cache {
-	struct arp_cache_entry cache[MAX_SIZE];
-};
+#include "sr_arp_cache.h"
 
 void arp_cache_init(struct sr_arp_cache* arp_cache){
 	memset(arp_cache->cache, 0, sizeof(arp_cache->cache));

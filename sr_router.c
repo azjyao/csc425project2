@@ -20,6 +20,7 @@
 #include "sr_router.h"
 #include "sr_protocol.h"
 #include "vnscommand.h"
+#include "sr_arp_cache.h"
 
  void send_arp_reply(struct sr_instance*, struct sr_arphdr*, char*);
  void process_ip_packet(struct sr_instance*, struct ip*, char*, int);
@@ -41,6 +42,7 @@
 
     printf("\n*******Before arp_cache_init\n");
     /* Add initialization code here! */
+    sr->arp_cache = malloc(sizeof(struct sr_arp_cache));
     arp_cache_init(sr->arp_cache);
     printf("\n*******After arp_cache_init\n");
 
