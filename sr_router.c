@@ -43,7 +43,7 @@
     printf("\n*******Before arp_cache_init\n");
     /* Add initialization code here! */
     sr->arp_cache = malloc(sizeof(struct sr_arp_cache));
-    //arp_cache_init(sr->arp_cache);
+    arp_cache_init(sr->arp_cache);
     printf("\n*******After arp_cache_init\n");
 
 
