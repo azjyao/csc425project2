@@ -214,12 +214,12 @@ void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interfa
 
 
     unsigned char* nexthop_hdw_addr = (unsigned char*) malloc(ETHER_ADDR_LEN*sizeof(unsigned char));
-    if(arp_cache_lookup(arp_cache, nexthop_rt_entry->dest.s_addr, nexthop_hdw_addr) == 0){
+    if(arp_cache_lookup(arp_cache, nexthop_rt_entry->gw.s_addr, nexthop_hdw_addr) == 0){
         // Not in arp_cache
         //queue packet for sending
         printf("Looked up, not in cache\n");
 
-        insert_packet(head, nexthop_rt_entry->dest.s_addr, ip_hdr, len, nexthop_rt_entry->interface);
+        insert_packet(head, nexthop_rt_entry->gw.s_addr, ip_hdr, len, nexthop_rt_entry->interface);
 
         //send arp_request
         struct sr_arphdr arp_req_hdr;
@@ -234,7 +234,7 @@ void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interfa
         memcpy(arp_req_hdr.ar_sha, sr_if_sender->addr, ETHER_ADDR_LEN);
         memset(arp_req_hdr.ar_tha, 0, ETHER_ADDR_LEN);
         arp_req_hdr.ar_sip = sr_if_sender->ip;
-        arp_req_hdr.ar_tip = nexthop_rt_entry->dest.s_addr;
+        arp_req_hdr.ar_tip = nexthop_rt_entry->gw.s_addr;
 
         //make eth header
         struct sr_ethernet_hdr req_ethhdr;
@@ -251,7 +251,7 @@ void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interfa
     }
     else{
         //if arp_cache entry is found, send it
-        insert_packet(head, nexthop_rt_entry->dest.s_addr, ip_hdr, len, nexthop_rt_entry->interface);
+        insert_packet(head, nexthop_rt_entry->gw.s_addr, ip_hdr, len, nexthop_rt_entry->interface);
         send_ip_packets(sr, head, arp_cache);
 
         printf("Next hop hardware_addr:");
