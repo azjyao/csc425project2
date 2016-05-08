@@ -3,7 +3,7 @@
 Implementing an arp_cache
 
 */
-
+#include "sr_router.h"
 #include "sr_arp_cache.h"
 
 void arp_cache_init(struct sr_arp_cache* arp_cache){
@@ -45,6 +45,7 @@ int arp_cache_insert(struct sr_arp_cache* arp_cache, uint32_t ip, unsigned char*
 }
 
 int arp_cache_lookup(struct sr_arp_cache* arp_cache, uint32_t ip, unsigned char* hardware){
+	arp_cache_refresh(arp_cache);
 	int found = 0;
 	int i;
 	struct timeval current_time;
@@ -59,6 +60,21 @@ int arp_cache_lookup(struct sr_arp_cache* arp_cache, uint32_t ip, unsigned char*
 			break;
 		}
 	}
-
 	return found;
 }
+
+int insert_packet(struct ip_packet_queue* head, uint32_t dest, uint8_t* pkt, unsigned int length, char* iface){
+	struct ip_packet_queue * insert = (struct ip_packet_queue *) malloc(sizeof(struct ip_packet_queue));
+	insert->dest_ip = dest;
+	insert->packet = pkt;
+	insert->len = length;
+	insert->interface = iface;
+	insert->next = NULL;
+
+	struct ip_packet_queue * current = head;
+	while(current->next != NULL){
+		current = current->next;
+	}
+	current->next = insert;
+}
+

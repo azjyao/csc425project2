@@ -23,12 +23,15 @@
 #include "sr_arp_cache.h"
 
 struct sr_arp_cache* arp_cache;
+struct ip_packet_queue* head;
 
  void send_arp_reply(struct sr_instance*, struct sr_arphdr*, char*);
  void process_ip_packet(struct sr_instance*, struct ip*, char*, int);
  u_short cksum(u_short*, int);
  struct sr_rt* get_nexthop(struct sr_rt*, struct in_addr*);
  int arp_cache_lookup(struct sr_arp_cache*, uint32_t, unsigned char*);
+ void send_ip_packets(struct sr_instance*, struct ip_packet_queue*, struct sr_arp_cache*);
+ void process_arp_reply(struct sr_instance*, struct sr_arphdr*, struct sr_arp_cache*);
 /*--------------------------------------------------------------------- 
  * Method: sr_init(void)
  * Scope:  Global
@@ -44,9 +47,17 @@ struct sr_arp_cache* arp_cache;
 
     printf("\n*******Before arp_cache_init\n");
     /* Add initialization code here! */
-    arp_cache = malloc(sizeof(struct sr_arp_cache));
+    arp_cache = (struct sr_arp_cache *) malloc(sizeof(struct sr_arp_cache));
     arp_cache_init(arp_cache);
     printf("\n*******After arp_cache_init\n");
+
+    // initialize head of linked list of packets in queue
+    head = (struct ip_packet_queue *) malloc(sizeof(struct ip_packet_queue));
+    head->dest_ip = 0;
+    head->packet = 0;
+    head->len = 0;
+    head->interface = 0;
+    head->next = NULL;
 
 
 } /* -- sr_init -- */
@@ -86,8 +97,12 @@ struct sr_arp_cache* arp_cache;
         /* Process the ARP packet */
             struct sr_arphdr *ahdr;
             ahdr = (struct sr_arphdr *) (packet + sizeof(struct sr_ethernet_hdr));
-            send_arp_reply(sr, ahdr, interface);
-
+            if(ahdr->ar_op == ARP_REQUEST){
+                send_arp_reply(sr, ahdr, interface);
+            }
+            else if(ahdr->ar_op == ARP_REPLY){
+                process_arp_reply(sr, ahdr, arp_cache);
+            }
 
         } else if(ntohs(ehdr->ether_type) == ETHERTYPE_IP) {
         /* Process the IP packet */
@@ -147,7 +162,7 @@ struct sr_arp_cache* arp_cache;
     memcpy(reply_ethhdr.ether_shost, sr_if->addr, ETHER_ADDR_LEN);
 
     unsigned int reply_ethpacket_len = sizeof(struct sr_arphdr) + sizeof(reply_ethhdr);
-    uint8_t * reply_ethpacket = malloc(reply_ethpacket_len);
+    uint8_t * reply_ethpacket = (uint8_t *) malloc(reply_ethpacket_len);
     memcpy(reply_ethpacket, &reply_ethhdr, sizeof(reply_ethhdr));
     memcpy(reply_ethpacket + sizeof(reply_ethhdr), &reply_arphdr, sizeof(reply_arphdr));
     sr_send_packet(sr, reply_ethpacket, reply_ethpacket_len, interface);
@@ -192,13 +207,23 @@ void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interfa
     //printf("interface of next hop: %s\n", nexthop_rt_entry->interface);
 
 
-    unsigned char* nexthop_hdw_addr = malloc(ETHER_ADDR_LEN*sizeof(unsigned char));
+    unsigned char* nexthop_hdw_addr = (unsigned char*) malloc(ETHER_ADDR_LEN*sizeof(unsigned char));
     if(arp_cache_lookup(arp_cache, nexthop_rt_entry->dest.s_addr, nexthop_hdw_addr) == 0){
         // Not in arp_cache
         //send arp request
+        //queue packet
+
         printf("Looked up, not in cache\n");
+
+        insert_packet(head, nexthop_rt_entry->dest.s_addr, ip_hdr, len, nexthop_rt_entry->interface);
+
+
     }
     else{
+        //if arp_cache entry is found, send it
+        insert_packet(head, nexthop_rt_entry->dest.s_addr, ip_hdr, len, nexthop_rt_entry->interface);
+        send_ip_packets(sr, head, arp_cache);
+
         printf("Next hop hardware_addr:");
         int pos2 = 0;
         uint8_t curr1;
@@ -252,4 +277,44 @@ struct sr_rt* get_nexthop(struct sr_rt* routing_table, struct in_addr* ip_dst){
     }
 
     return best_match;
+}
+
+
+void send_ip_packets(struct sr_instance* sr, struct ip_packet_queue* head, struct sr_arp_cache* arp_cache){
+    struct ip_packet_queue* current = head->next;
+    struct ip_packet_queue* prev = head;
+    unsigned char* nexthop_hdw_addr = (unsigned char*) malloc(ETHER_ADDR_LEN*sizeof(unsigned char));
+    while(current != NULL){
+        memset(nexthop_hdw_addr, 0, ETHER_ADDR_LEN*sizeof(unsigned char));
+        if(arp_cache_lookup(arp_cache, current->dest_ip, nexthop_hdw_addr) != 0){
+            //make ethernet header
+            struct sr_ethernet_hdr eth_hdr;
+            struct sr_if* sr_if = sr_get_interface(sr, current->interface);
+            eth_hdr.ether_type = htons(ETHERTYPE_IP);
+            memcpy(eth_hdr.ether_dhost, nexthop_hdw_addr, ETHER_ADDR_LEN);
+            memcpy(eth_hdr.ether_shost, sr_if->addr, ETHER_ADDR_LEN);
+
+            //get length of entire packet
+            unsigned int total_len = sizeof(struct sr_ethernet_hdr) + ntohs(((struct ip*) current->packet)->ip_len);
+            printf("Passed in len from handlepacket: %d\n", current->len);
+            printf("IP header included len: %d\n", ntohs(((struct ip*) current->packet)->ip_len));
+
+            uint8_t * full_packet = (uint8_t *) malloc(total_len);
+            memcpy(full_packet, &eth_hdr, sizeof(eth_hdr));
+            //TOOK A GANDER! used "len", could be the ip_len from the ip_header
+            memcpy(full_packet+sizeof(eth_hdr), current->packet, current->len);
+            sr_send_packet(sr, full_packet, total_len, current->interface);
+
+            prev->next = current->next;
+        }
+        else{
+            prev = current;
+        }
+        current = current->next;
+    }
+}
+
+void process_arp_reply(struct sr_instance* sr, struct sr_arphdr* ahdr, struct sr_arp_cache* arp_cache){
+    arp_cache_insert(arp_cache, ahdr->ar_sip, ahdr->ar_sha);
+    send_ip_packets(sr, head, arp_cache);
 }
