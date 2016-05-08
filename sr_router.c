@@ -146,7 +146,11 @@ struct ip_packet_queue* head;
     if(sr_if->ip != arp_header->ar_tip){
         return;
     }
-    
+    /* Print out everything from arp request */
+
+    /*      --------------------------       */
+
+
     reply_arphdr.ar_hrd = htons(0x0001);
     reply_arphdr.ar_pro = htons(ETHERTYPE_IP);
     reply_arphdr.ar_hln = ETHER_ADDR_LEN;
@@ -221,7 +225,7 @@ void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interfa
         struct sr_arphdr arp_req_hdr;
         arp_req_hdr.ar_hrd = htons(0x0001);
         arp_req_hdr.ar_pro = htons(ETHERTYPE_IP);
-        arp_req_hdr.ar_pro = ETHER_ADDR_LEN;
+        arp_req_hdr.ar_hln = ETHER_ADDR_LEN;
         arp_req_hdr.ar_pln = sizeof(uint32_t);
         arp_req_hdr.ar_op = htons(ARP_REQUEST);
 
@@ -340,6 +344,7 @@ void send_ip_packets(struct sr_instance* sr, struct ip_packet_queue* head, struc
 }
 
 void process_arp_reply(struct sr_instance* sr, struct sr_arphdr* ahdr, struct sr_arp_cache* arp_cache){
+    printf("In process_arp_reply\n");
     arp_cache_insert(arp_cache, ahdr->ar_sip, ahdr->ar_sha);
     send_ip_packets(sr, head, arp_cache);
 }
