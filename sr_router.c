@@ -232,6 +232,7 @@ void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interfa
         struct sr_if* sr_if_sender = sr_get_interface(sr, nexthop_rt_entry->interface);
 
         memcpy(arp_req_hdr.ar_sha, sr_if_sender->addr, ETHER_ADDR_LEN);
+        memset(arp_req_hdr.ar_tha, 0, ETHER_ADDR_LEN);
         arp_req_hdr.ar_sip = sr_if_sender->ip;
         arp_req_hdr.ar_tip = nexthop_rt_entry->dest.s_addr;
 
