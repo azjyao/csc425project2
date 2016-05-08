@@ -185,10 +185,10 @@ void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interfa
 
     /* Find ip address of next hop */
     struct sr_rt* nexthop_rt_entry = get_nexthop(sr->routing_table, &(ip_hdr->ip_dst));
-    printf("interface of next hop: %s\n", nexthop_rt_entry->interface);
+    //printf("interface of next hop: %s\n", nexthop_rt_entry->interface);
 
 
-    unsigned char* nexthop_hdw_addr = malloc(ETHER_ADDR_LEN*sizeof(unsigned char));
+    //unsigned char* nexthop_hdw_addr = malloc(ETHER_ADDR_LEN*sizeof(unsigned char));
     /*if(arp_cache_lookup(sr->arp_cache, nexthop_rt_entry->dest.s_addr, nexthop_hdw_addr) == 0){
         // Not in arp_cache
         //send arp request
