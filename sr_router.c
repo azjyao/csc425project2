@@ -178,7 +178,6 @@ void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interfa
 
     ip_hdr->ip_sum = (uint16_t) cksum(ip_hdr, iphdr_len_cksum);
     printf("*** -> New Checksum of Packet: %d", ip_hdr->ip_sum);
-    // printf("*** -> Checksum calculated: %d", )
 
     return;
 }
@@ -198,4 +197,20 @@ so wrap around */
         }
     }
     return ~(sum & 0xFFFF);
+}
+
+struct sr_rt* get_nexthop(struct sr_rt* routing_table, struct in_addr* ip_dst){
+    uint32_t dst_addr = ip_dst->s_addr;
+    struct sr_rt* table_entry = routing_table;
+
+
+    while(table_entry != 0){
+        if((table_entry->mask.s_addr & table_entry->dest.s_addr) == (dst_addr & table_entry->mask.s_addr)){
+
+            return table_entry;
+        }
+        table_entry = table_entry->next;
+    }
+    
+    return 0;
 }
