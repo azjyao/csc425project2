@@ -148,7 +148,7 @@ struct ip_packet_queue* head;
     }
     
     reply_arphdr.ar_hrd = htons(0x0001);
-    reply_arphdr.ar_pro = htons(0x0800);
+    reply_arphdr.ar_pro = htons(ETHERTYPE_IP);
     reply_arphdr.ar_hln = ETHER_ADDR_LEN;
     reply_arphdr.ar_pln = sizeof(uint32_t);
     reply_arphdr.ar_op = htons(ARP_REPLY);
@@ -212,13 +212,36 @@ void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interfa
     unsigned char* nexthop_hdw_addr = (unsigned char*) malloc(ETHER_ADDR_LEN*sizeof(unsigned char));
     if(arp_cache_lookup(arp_cache, nexthop_rt_entry->dest.s_addr, nexthop_hdw_addr) == 0){
         // Not in arp_cache
-        //send arp request
-        //queue packet
-
+        //queue packet for sending
         printf("Looked up, not in cache\n");
 
         insert_packet(head, nexthop_rt_entry->dest.s_addr, ip_hdr, len, nexthop_rt_entry->interface);
 
+        //send arp_request
+        struct sr_arphdr arp_req_hdr;
+        arp_req_hdr.ar_hrd = htons(0x0001);
+        arp_req_hdr.ar_pro = htons(ETHERTYPE_IP);
+        arp_req_hdr.ar_pro = ETHER_ADDR_LEN;
+        arp_req_hdr.ar_pln = sizeof(uint32_t);
+        arp_req_hdr.ar_op = htons(ARP_REQUEST);
+
+        struct sr_if* sr_if_sender = sr_get_interface(sr, nexthop_rt_entry->interface);
+
+        memcpy(arp_req_hdr.ar_sha, sr_if_sender->addr, ETHER_ADDR_LEN);
+        arp_req_hdr.ar_sip = sr_if_sender->ip;
+        arp_req_hdr.ar_tip = nexthop_rt_entry->dest.s_addr;
+
+        //make eth header
+        struct sr_ethernet_hdr req_ethhdr;
+        req_ethhdr.ether_type = htons(ETHERTYPE_ARP);
+        memset(req_ethhdr.ether_dhost, 255, ETHER_ADDR_LEN);
+        memcpy(req_ethhdr.ether_shost, sr_if_sender->addr, ETHER_ADDR_LEN);
+
+        unsigned int req_ethpacket_len = sizeof(struct sr_arphdr) + sizeof(req_ethhdr);
+        uint8_t * req_ethpacket = (uint8_t *) malloc(req_ethpacket_len);
+        memcpy(req_ethpacket, &req_ethhdr, sizeof(req_ethhdr));
+        memcpy(req_ethpacket + sizeof(req_ethhdr), &arp_req_hdr, sizeof(arp_req_hdr));
+        sr_send_packet(sr, req_ethpacket, req_ethpacket_len, nexthop_rt_entry->interface);
 
     }
     else{
