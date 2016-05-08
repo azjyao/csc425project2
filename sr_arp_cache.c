@@ -26,6 +26,7 @@ void arp_cache_refresh(struct sr_arp_cache* arp_cache){
 }
 
 int arp_cache_insert(struct sr_arp_cache* arp_cache, uint32_t ip, unsigned char* hardware){
+	arp_cache_refresh(arp_cache);
 	int not_full = 0;
 	struct timeval current_time;
 	memset(&current_time, 0, sizeof(current_time));
@@ -55,6 +56,8 @@ int arp_cache_lookup(struct sr_arp_cache* arp_cache, uint32_t ip, unsigned char*
 	for(i = 0; i < MAX_SIZE; i++){
 		if(arp_cache->cache[i].ip_addr == ip){
 			memcpy(hardware, arp_cache->cache[i].hardware_addr, sizeof(unsigned char)*ETHER_ADDR_LEN);
+			printf("\n***IP that we're searching for: %d***\n", ip);
+
 			found = 1;
 			arp_cache->cache[i].init_time = curr_sec;
 			break;
