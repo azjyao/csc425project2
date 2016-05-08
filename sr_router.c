@@ -303,6 +303,7 @@ struct sr_rt* get_nexthop(struct sr_rt* routing_table, struct in_addr* ip_dst){
             if(table_entry->mask.s_addr > best_match_mask){
                 best_match_mask = table_entry->mask.s_addr;
                 best_match = table_entry;
+                printf("\nBest match mask: %d\n ", best_match_mask);
             }
             
         }
