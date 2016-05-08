@@ -310,6 +310,7 @@ struct sr_rt* get_nexthop(struct sr_rt* routing_table, struct in_addr* ip_dst){
         table_entry = table_entry->next;
     }
     printf("\nFINAL BEST MATCH MASK: %d\n ", best_match_mask);
+    printf("\nbest match information: %d, %d, %d, %s\n", best_match->dest.s_addr, best_match->gw.s_addr, best_match->mask.s_addr, best_match->interface);
     return best_match;
 }
 
