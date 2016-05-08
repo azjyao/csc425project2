@@ -97,10 +97,12 @@ struct ip_packet_queue* head;
         /* Process the ARP packet */
             struct sr_arphdr *ahdr;
             ahdr = (struct sr_arphdr *) (packet + sizeof(struct sr_ethernet_hdr));
-            if(ahdr->ar_op == ARP_REQUEST){
+            printf("Ethertype: ARP\n");
+            printf("ARP opcode: %d\n", htons(ahdr->ar_op));
+            if(htons(ahdr->ar_op) == ARP_REQUEST){
                 send_arp_reply(sr, ahdr, interface);
             }
-            else if(ahdr->ar_op == ARP_REPLY){
+            else if(htons(ahdr->ar_op) == ARP_REPLY){
                 process_arp_reply(sr, ahdr, arp_cache);
             }
 
