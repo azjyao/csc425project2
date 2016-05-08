@@ -24,6 +24,7 @@
  void send_arp_reply(struct sr_instance*, struct sr_arphdr*, char*);
  void process_ip_packet(struct sr_instance*, struct ip*, char*, int);
  u_short cksum(u_short*, int);
+ struct sr_rt* get_nexthop(struct sr_rt*, struct in_addr*);
 /*--------------------------------------------------------------------- 
  * Method: sr_init(void)
  * Scope:  Global
@@ -164,13 +165,13 @@ void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interfa
     TTL and Checksum
     */
     int iphdr_len_cksum = sizeof(struct ip)/2;
-    printf("*** -> Received checksum: %d", ip_hdr->ip_sum);
+    // printf("*** -> Received checksum: %d", ip_hdr->ip_sum);
     ip_hdr->ip_sum = 0;
-    printf("*** -> Calculated checksum of Packet: %d", cksum(ip_hdr, iphdr_len_cksum));
+    // printf("*** -> Calculated checksum of Packet: %d", cksum(ip_hdr, iphdr_len_cksum));
 
-    printf("*** -> Old TTL of packet: %d", ip_hdr->ip_ttl);
+    // printf("*** -> Old TTL of packet: %d", ip_hdr->ip_ttl);
     ip_hdr->ip_ttl--;
-    printf("*** -> New TTL of packet: %d", ip_hdr->ip_ttl);
+    // printf("*** -> New TTL of packet: %d", ip_hdr->ip_ttl);
     if(ip_hdr->ip_ttl == 0){
         printf("TTL is 0, drop the packet\n");
         return;
@@ -179,6 +180,9 @@ void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interfa
     ip_hdr->ip_sum = (uint16_t) cksum(ip_hdr, iphdr_len_cksum);
     printf("*** -> New Checksum of Packet: %d", ip_hdr->ip_sum);
 
+    /* Find ip address of next hop */
+    struct sr_rt* nexthop_rt_entry = get_nexthop(sr->routing_table, &(ip_hdr->ip_dst));
+    printf("interface of next hop: %s\n", nexthop_rt_entry->interface);
     return;
 }
 
@@ -202,15 +206,23 @@ so wrap around */
 struct sr_rt* get_nexthop(struct sr_rt* routing_table, struct in_addr* ip_dst){
     uint32_t dst_addr = ip_dst->s_addr;
     struct sr_rt* table_entry = routing_table;
-
+    uint32_t best_match_mask = 0;
+    struct sr_rt* best_match = 0;
 
     while(table_entry != 0){
+        /*
+        Check is the table entry is a match, and then check if it a longer match
+        */
         if((table_entry->mask.s_addr & table_entry->dest.s_addr) == (dst_addr & table_entry->mask.s_addr)){
 
-            return table_entry;
+            if(table_entry->mask.s_addr > best_match_mask){
+                best_match_mask = table_entry->mask.s_addr;
+                best_match = table_entry;
+            }
+            
         }
         table_entry = table_entry->next;
     }
-    
-    return 0;
+
+    return best_match;
 }
