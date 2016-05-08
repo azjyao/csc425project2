@@ -94,7 +94,7 @@
 
         printf("*** -> Receiving packet type is: %x", ntohs(ehdr->ether_type));
         printf("*** -> Receiving interface is: %s",interface);
-        printf("*** -> Interface ethernet addr is: ");
+        /*printf("*** -> Interface ethernet addr is: ");
         struct sr_if* rec_if = sr_get_interface(sr, interface);
         int pos2 = 0;
         uint8_t curr1;
@@ -103,7 +103,7 @@
             if (pos2 > 0)
               fprintf(stderr, ":");
           fprintf(stderr, "%02X", curr1);
-      }
+      }*/
       printf("*** -> Received packet of length %d \n",len);
 
 }/* end sr_ForwardPacket */
@@ -183,6 +183,24 @@ void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interfa
     /* Find ip address of next hop */
     struct sr_rt* nexthop_rt_entry = get_nexthop(sr->routing_table, &(ip_hdr->ip_dst));
     printf("interface of next hop: %s\n", nexthop_rt_entry->interface);
+
+    unsigned char nexthop_hdw_addr[ETHER_ADDR_LEN];
+    if(arp_cache_lookup(sr->arp_cache, nexthop_rt_entry->dest.s_addr, nexthop_hdw_addr) == 0){
+        // Not in arp_cache
+        //send arp request
+    }
+    else{
+        printf("Next hop hardware_addr:");
+        int pos2 = 0;
+        uint8_t curr1;
+        for (; pos2 < ETHER_ADDR_LEN; pos2++) {
+            curr1 = (nexthop_hdw_addr)[pos2];
+            if (pos2 > 0)
+              fprintf(stderr, ":");
+          fprintf(stderr, "%02X", curr1);
+      }
+    }
+
     return;
 }
 
