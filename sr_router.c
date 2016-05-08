@@ -192,10 +192,11 @@ void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interfa
     //printf("interface of next hop: %s\n", nexthop_rt_entry->interface);
 
 
-    //unsigned char* nexthop_hdw_addr = malloc(ETHER_ADDR_LEN*sizeof(unsigned char));
-    /*if(arp_cache_lookup(sr->arp_cache, nexthop_rt_entry->dest.s_addr, nexthop_hdw_addr) == 0){
+    unsigned char* nexthop_hdw_addr = malloc(ETHER_ADDR_LEN*sizeof(unsigned char));
+    if(arp_cache_lookup(arp_cache, nexthop_rt_entry->dest.s_addr, nexthop_hdw_addr) == 0){
         // Not in arp_cache
         //send arp request
+        printf("Looked up, not in cache\n");
     }
     else{
         printf("Next hop hardware_addr:");
@@ -207,7 +208,7 @@ void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interfa
               fprintf(stderr, ":");
           fprintf(stderr, "%02X", curr1);
       }
-    }*/
+    }
 
     return;
 }
