@@ -210,6 +210,9 @@ void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interfa
 
     /* Find ip address of next hop */
     struct sr_rt* nexthop_rt_entry = get_nexthop(sr->routing_table, &(ip_hdr->ip_dst));
+    if(nexthop_rt_entry == NULL){
+        printf("ip address of next hop not found\n");
+    }
     //printf("interface of next hop: %s\n", nexthop_rt_entry->interface);
 
 
@@ -289,7 +292,7 @@ struct sr_rt* get_nexthop(struct sr_rt* routing_table, struct in_addr* ip_dst){
     uint32_t dst_addr = ip_dst->s_addr;
     struct sr_rt* table_entry = routing_table;
     uint32_t best_match_mask = 0;
-    struct sr_rt* best_match = 0;
+    struct sr_rt* best_match = NULL;
 
     while(table_entry != 0){
         /*
