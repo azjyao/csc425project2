@@ -25,6 +25,7 @@
  void process_ip_packet(struct sr_instance*, struct ip*, char*, int);
  u_short cksum(u_short*, int);
  struct sr_rt* get_nexthop(struct sr_rt*, struct in_addr*);
+ int arp_cache_lookup(struct sr_arp_cache*, uint32_t, unsigned char*);
 /*--------------------------------------------------------------------- 
  * Method: sr_init(void)
  * Scope:  Global
