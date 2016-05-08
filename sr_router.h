@@ -57,7 +57,6 @@ struct sr_instance
     struct sockaddr_in sr_addr; /* address to server */
     struct sr_if* if_list; /* list of interfaces */
     struct sr_rt* routing_table; /* routing table */
-    struct sr_arp_cache* arp_cache;
     FILE* logfile;
 
 };

@@ -22,6 +22,8 @@
 #include "vnscommand.h"
 #include "sr_arp_cache.h"
 
+struct sr_arp_cache* arp_cache;
+
  void send_arp_reply(struct sr_instance*, struct sr_arphdr*, char*);
  void process_ip_packet(struct sr_instance*, struct ip*, char*, int);
  u_short cksum(u_short*, int);
@@ -42,8 +44,8 @@
 
     printf("\n*******Before arp_cache_init\n");
     /* Add initialization code here! */
-    sr->arp_cache = malloc(sizeof(struct sr_arp_cache));
-    arp_cache_init(sr->arp_cache);
+    arp_cache = malloc(sizeof(struct sr_arp_cache));
+    arp_cache_init(arp_cache);
     printf("\n*******After arp_cache_init\n");
 
 
