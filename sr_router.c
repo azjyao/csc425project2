@@ -100,6 +100,7 @@ struct ip_packet_queue* head;
             printf("Ethertype: ARP\n");
             printf("ARP opcode: %d\n", htons(ahdr->ar_op));
             if(htons(ahdr->ar_op) == ARP_REQUEST){
+                arp_cache_insert(arp_cache, ahdr->ar_sip, ahdr->ar_sha);
                 send_arp_reply(sr, ahdr, interface);
             }
             else if(htons(ahdr->ar_op) == ARP_REPLY){
@@ -217,12 +218,12 @@ void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interfa
 
 
     unsigned char* nexthop_hdw_addr = (unsigned char*) malloc(ETHER_ADDR_LEN*sizeof(unsigned char));
-    if(arp_cache_lookup(arp_cache, nexthop_rt_entry->dest.s_addr, nexthop_hdw_addr) == 0){
+    if(arp_cache_lookup(arp_cache, ip_hdr->ip_dst.s_addr, nexthop_hdw_addr) == 0){
         // Not in arp_cache
         //queue packet for sending
         printf("Looked up, not in cache\n");
 
-        insert_packet(head, nexthop_rt_entry->dest.s_addr, ip_hdr, len, nexthop_rt_entry->interface);
+        insert_packet(head, ip_hdr->ip_dst.s_addr, ip_hdr, len, nexthop_rt_entry->interface);
 
         //send arp_request
         struct sr_arphdr arp_req_hdr;
@@ -237,7 +238,7 @@ void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interfa
         memcpy(arp_req_hdr.ar_sha, sr_if_sender->addr, ETHER_ADDR_LEN);
         memset(arp_req_hdr.ar_tha, 0, ETHER_ADDR_LEN);
         arp_req_hdr.ar_sip = sr_if_sender->ip;
-        arp_req_hdr.ar_tip = nexthop_rt_entry->dest.s_addr;
+        arp_req_hdr.ar_tip = ip_hdr->ip_dst.s_addr;
 
         //make eth header
         struct sr_ethernet_hdr req_ethhdr;
@@ -254,7 +255,7 @@ void process_ip_packet(struct sr_instance* sr, struct ip * ip_hdr, char* interfa
     }
     else{
         //if arp_cache entry is found, send it
-        insert_packet(head, nexthop_rt_entry->dest.s_addr, ip_hdr, len, nexthop_rt_entry->interface);
+        insert_packet(head, ip_hdr->ip_dst.s_addr, ip_hdr, len, nexthop_rt_entry->interface);
         send_ip_packets(sr, head, arp_cache);
 
         printf("Next hop hardware_addr:");
@@ -293,14 +294,14 @@ struct sr_rt* get_nexthop(struct sr_rt* routing_table, struct in_addr* ip_dst){
     struct sr_rt* table_entry = routing_table;
     uint32_t best_match_mask = 0;
     struct sr_rt* best_match = NULL;
-
+    printf("IP we're trying to match: %d\n", dst_addr);
     while(table_entry != 0){
         /*
         Check is the table entry is a match, and then check if it a longer match
         */
         if((table_entry->mask.s_addr & table_entry->dest.s_addr) == (dst_addr & table_entry->mask.s_addr)){
 
-            if(table_entry->mask.s_addr > best_match_mask){
+            if(table_entry->mask.s_addr >= best_match_mask){
                 best_match_mask = table_entry->mask.s_addr;
                 best_match = table_entry;
                 printf("\nBest match mask: %d\n ", best_match_mask);
@@ -310,7 +311,7 @@ struct sr_rt* get_nexthop(struct sr_rt* routing_table, struct in_addr* ip_dst){
         table_entry = table_entry->next;
     }
     printf("\nFINAL BEST MATCH MASK: %d\n ", best_match_mask);
-    printf("\nbest match information: %d, %d, %d, %s\n", best_match->dest.s_addr, best_match->gw.s_addr, best_match->mask.s_addr, best_match->interface);
+    // printf("\nbest match information: %d, %d, %d, %s\n", best_match->dest.s_addr, best_match->gw.s_addr, best_match->mask.s_addr, best_match->interface);
     return best_match;
 }
 
@@ -352,5 +353,6 @@ void send_ip_packets(struct sr_instance* sr, struct ip_packet_queue* head, struc
 void process_arp_reply(struct sr_instance* sr, struct sr_arphdr* ahdr, struct sr_arp_cache* arp_cache){
     printf("In process_arp_reply\n");
     arp_cache_insert(arp_cache, ahdr->ar_sip, ahdr->ar_sha);
+    printf("About to send all ip packets\n");
     send_ip_packets(sr, head, arp_cache);
 }
